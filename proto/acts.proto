@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package acts.grpc;
+
+// import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+
+message MessageOptions {
+
+  string client_id = 1;
+
+  // message type
+  string type = 2;
+
+  // message event
+  string state = 3;
+
+  // model tag
+  string tag = 4;
+}
+message WorkflowOptions {}
+
+message ActionOptions {
+  string name = 1;
+  google.protobuf.Value options = 2;
+}
+
+message WorkflowState {
+  string pid = 1;
+  string mid = 2;
+  string event = 3;
+  string state = 4;
+  int64 start_time = 5;
+  int64 end_time = 6;
+  google.protobuf.Value outputs = 7;
+}
+
+message WorkflowMessage {
+  string id = 1;
+  string name = 2;
+  string state = 3;
+  string type = 4;
+  string model_id = 5;
+  string model_tag = 6;
+  string model_name = 7;
+  string proc_id = 8;
+  string key = 9;
+  google.protobuf.Value inputs = 10;
+  google.protobuf.Value outputs = 11;
+  string tag = 12;
+  int64 start_time = 13;
+  int64 end_time = 14;
+}
+
+message ActionResult {
+  int64 start_time = 1;
+  int64 end_time = 2;
+  google.protobuf.Value data = 3;
+}
+
+service ActsService {
+  rpc OnMessage(MessageOptions) returns (stream WorkflowMessage) {}
+  rpc action(ActionOptions) returns (ActionResult) {}
+}
