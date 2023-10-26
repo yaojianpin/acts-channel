@@ -17,6 +17,9 @@ message MessageOptions {
 
   // model tag
   string tag = 4;
+
+  // message key
+  string key = 5;
 }
 message WorkflowOptions {}
 

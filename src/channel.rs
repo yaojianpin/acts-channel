@@ -14,6 +14,7 @@ pub struct ActsOptions {
     pub r#type: Option<String>,
     pub state: Option<String>,
     pub tag: Option<String>,
+    pub key: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -140,6 +141,38 @@ impl ActsChannel {
         self.do_action("cancel", &options).await
     }
 
+    pub async fn skip(
+        &mut self,
+        pid: &str,
+        tid: &str,
+        uid: &str,
+        vars: &Vars,
+    ) -> Result<ActionResult, Status> {
+        let mut options = Vars::new();
+        options.insert_str("pid".to_string(), pid.clone());
+        options.insert_str("tid".to_string(), tid.clone());
+        options.insert_str("uid".to_string(), uid.clone());
+        options.extend(vars);
+
+        self.do_action("skip", &options).await
+    }
+
+    pub async fn error(
+        &mut self,
+        pid: &str,
+        tid: &str,
+        uid: &str,
+        vars: &Vars,
+    ) -> Result<ActionResult, Status> {
+        let mut options = Vars::new();
+        options.insert_str("pid".to_string(), pid.clone());
+        options.insert_str("tid".to_string(), tid.clone());
+        options.insert_str("uid".to_string(), uid.clone());
+        options.extend(vars);
+
+        self.do_action("error", &options).await
+    }
+
     async fn do_action(&mut self, name: &str, options: &Vars) -> Result<ActionResult, Status> {
         let resp = self
             .inner
@@ -174,6 +207,13 @@ impl ActsChannel {
                 .to_string(),
             tag: options
                 .tag
+                .as_ref()
+                .map(|i| i.as_str())
+                .unwrap_or("*")
+                .to_string(),
+
+            key: options
+                .key
                 .as_ref()
                 .map(|i| i.as_str())
                 .unwrap_or("*")

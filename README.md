@@ -18,69 +18,94 @@ acts-channel = { git = "https://github.com/yaojianpin/acts-channel.git" }
 Listening to the message from [`acts-server`](<https://github.com/yaojianpin/acts-server>)
 
 ```rust,no_run
-use acts_channel::{
-    self, acts_service_client::ActsServiceClient, model::Message, ActionOptions, MessageOptions,
-    Vars,
-};
-use tonic::{transport::Channel, Request, Status};
+use acts_channel::{ActsChannel, ActsOptions};
 
+fn on_message(msg: &Message) {
+    // do something
+}
 let uri = format!("http://{hostname}:{port}");
-let endpoint = Endpoint::from_str(&uri)?;
-let mut client = ActsServiceClient::connect(endpoint).await?;
+let client = ActsChannel::new(
+    &uri,
+    "my_client_id",
 
-let request = tonic::Request::new(MessageOptions {
-    client_id: "my_client_id".to_string(),
-    r#type: "*".to_string(),
-    state: "*".to_string(),
-    tag: "*".to_string(),
-});
-let mut stream = client.on_message(request).await.unwrap().into_inner();
-tokio::spawn(async move {
-    while let Some(item) = stream.next().await {
-        if !item.is_err() {
-            let m: Message = item.unwrap().into();
-            println!("[message]: {}", serde_json::to_string(&m).unwrap());
-        }
-    }
-});
+    // the ActsOptions can set to filter the messages with type, event, tag and key
+    ActsOptions {
+        on_message: Some(on_message),
+        ..ActsOptions::default()
+    },
+)
+.await
 
 ```
 
 ## Action
 
-Executes action to interact with acts-server, such as `deploy`, `start`, `submit`, `complete`, `back`, `cancel`, `error`, etc. For more information, please see [`acts-server`](<https://github.com/yaojianpin/acts-server>)
+Executes action to interact with acts-server, such as `deploy`, `start`, `submit`, `complete`, `back`, `cancel`, `skip`, `error`, etc. For more information, please see [`acts-server`](<https://github.com/yaojianpin/acts-server>)
 
 ### Deploy
 ```rust,no_run
-
-let mut options = Vars::new();
-options.insert_str("model".to_string(), "model yml here");
-
 let resp = client
-    .action(Request::new(ActionOptions {
-        // action name
-        name: "deploy".to_string(),
-        options: Some(options.prost_vars()),
-    }))
-    .await?;
+    .deploy("mid", "model yml here").await?;
 let result: ActionResult = resp.into_inner();
 
 ```
 
-
 ### Start
 ```rust,no_run
-let mut options = Vars::new();
-options.insert_str("mid".to_string(), "your_model_id".to_string());
-options.insert_str("pid".to_string(), "your_custom_id_for_proc_id".to_string());
+let mut vars = Vars::new();
+vars.insert("var1", &true.into());
+let resp = client
+    .submit("pid", "tid", "u1", &vars).await?;
+let result: ActionResult = resp.into_inner();
 
-let resp = self
-    .client
-    .action(Request::new(ActionOptions {
-        name: "start".to_string(),
-        options: Some(options.prost_vars()),
-    }))
-    .await?;
+```
+
+### Complete
+```rust,no_run
+let mut vars = Vars::new();
+vars.insert("var1", json!("value1"));
+let resp = client
+    .complete("pid", "tid", "u1", &vars).await?;
+let result: ActionResult = resp.into_inner();
+
+```
+
+### Back
+```rust,no_run
+let mut vars = Vars::new();
+vars.insert("to", &json!("step1"));
+let resp = client
+    .back("pid", "tid", "u1", &vars).await?;
+let result: ActionResult = resp.into_inner();
+
+```
+
+### Cancel
+```rust,no_run
+let mut vars = Vars::new();
+vars.insert("var1", json!("value1"));
+let resp = client
+    .cancel("pid", "tid", "u1", &vars).await?;
+let result: ActionResult = resp.into_inner();
+
+```
+
+### Skip
+```rust,no_run
+let mut vars = Vars::new();
+vars.insert("var1", json!("value1"));
+let resp = client
+    .skip("pid", "tid", "u1", &vars).await?;
+let result: ActionResult = resp.into_inner();
+
+```
+
+### Error
+```rust,no_run
+let mut vars = Vars::new();
+vars.insert("error_code", json!("err1"));
+let resp = client
+    .error("pid", "tid", "u1", &vars).await?;
 let result: ActionResult = resp.into_inner();
 
 ```
