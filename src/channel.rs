@@ -10,7 +10,6 @@ use tonic::{
 
 #[derive(Debug, Clone, Default)]
 pub struct ActsOptions {
-    pub on_message: Option<fn(&Message)>,
     pub r#type: Option<String>,
     pub state: Option<String>,
     pub tag: Option<String>,
@@ -19,29 +18,33 @@ pub struct ActsOptions {
 
 #[derive(Debug, Clone)]
 pub struct ActsChannel {
-    inner: ActsServiceClient<Channel>,
+    client: ActsServiceClient<Channel>,
 }
 
 impl ActsChannel {
-    pub async fn new(
-        url: &str,
-        client_id: &str,
-        options: &ActsOptions,
-    ) -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new(url: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let addr = Endpoint::from_str(url)?;
-        let mut client = ActsServiceClient::connect(addr).await?;
-
-        if let Some(on_message) = options.on_message {
-            Self::on_message(&mut client, client_id, on_message, options).await;
-        }
-
-        Ok(Self { inner: client })
+        let client = ActsServiceClient::connect(addr).await?;
+        Ok(Self { client })
     }
 
-    pub async fn deploy(&mut self, mid: &str, model: &str) -> Result<ActionResult, Status> {
+    /// subscribe the server message
+    pub async fn sub<F: Fn(&Message) + Send + Sync + 'static>(
+        &mut self,
+        client_id: &str,
+        on_message: F,
+        options: &ActsOptions,
+    ) {
+        Self::on_message(&mut self.client, client_id, on_message, options).await;
+    }
+
+    pub async fn deploy(&mut self, model: &str, mid: Option<&str>) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
         options.insert_str("model".to_string(), model.to_string());
-        options.insert_str("mid".to_string(), mid.to_string());
+
+        if let Some(mid) = mid {
+            options.insert_str("mid".to_string(), mid.to_string());
+        }
 
         self.do_action("deploy", &options).await
     }
@@ -60,12 +63,12 @@ impl ActsChannel {
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
-        options.insert_str("mid".to_string(), mid.clone());
-        options.insert_str("uid".to_string(), uid.clone());
+        options.insert_str("mid".to_string(), mid);
+        options.insert_str("uid".to_string(), uid);
         options.extend(vars);
 
         let resp = self
-            .inner
+            .client
             .action(Request::new(ActionOptions {
                 name: "start".to_string(),
                 options: Some(options.prost_vars()),
@@ -83,9 +86,9 @@ impl ActsChannel {
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
-        options.insert_str("pid".to_string(), pid.clone());
-        options.insert_str("tid".to_string(), tid.clone());
-        options.insert_str("uid".to_string(), uid.clone());
+        options.insert_str("pid".to_string(), pid);
+        options.insert_str("tid".to_string(), tid);
+        options.insert_str("uid".to_string(), uid);
         options.extend(vars);
 
         self.do_action("submit", &options).await
@@ -99,9 +102,9 @@ impl ActsChannel {
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
-        options.insert_str("pid".to_string(), pid.clone());
-        options.insert_str("tid".to_string(), tid.clone());
-        options.insert_str("uid".to_string(), uid.clone());
+        options.insert_str("pid".to_string(), pid);
+        options.insert_str("tid".to_string(), tid);
+        options.insert_str("uid".to_string(), uid);
         options.extend(vars);
 
         self.do_action("complete", &options).await
@@ -116,10 +119,10 @@ impl ActsChannel {
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
-        options.insert_str("pid".to_string(), pid.clone());
-        options.insert_str("tid".to_string(), tid.clone());
-        options.insert_str("uid".to_string(), uid.clone());
-        options.insert_str("to".to_string(), to.clone());
+        options.insert_str("pid".to_string(), pid);
+        options.insert_str("tid".to_string(), tid.to_string());
+        options.insert_str("uid".to_string(), uid.to_string());
+        options.insert_str("to".to_string(), to.to_string());
         options.extend(vars);
 
         self.do_action("back", &options).await
@@ -133,9 +136,9 @@ impl ActsChannel {
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
-        options.insert_str("pid".to_string(), pid.clone());
-        options.insert_str("tid".to_string(), tid.clone());
-        options.insert_str("uid".to_string(), uid.clone());
+        options.insert_str("pid".to_string(), pid.to_string());
+        options.insert_str("tid".to_string(), tid.to_string());
+        options.insert_str("uid".to_string(), uid.to_string());
         options.extend(vars);
 
         self.do_action("cancel", &options).await
@@ -149,9 +152,9 @@ impl ActsChannel {
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
-        options.insert_str("pid".to_string(), pid.clone());
-        options.insert_str("tid".to_string(), tid.clone());
-        options.insert_str("uid".to_string(), uid.clone());
+        options.insert_str("pid".to_string(), pid.to_string());
+        options.insert_str("tid".to_string(), tid.to_string());
+        options.insert_str("uid".to_string(), uid.to_string());
         options.extend(vars);
 
         self.do_action("skip", &options).await
@@ -165,17 +168,17 @@ impl ActsChannel {
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
-        options.insert_str("pid".to_string(), pid.clone());
-        options.insert_str("tid".to_string(), tid.clone());
-        options.insert_str("uid".to_string(), uid.clone());
+        options.insert_str("pid".to_string(), pid.to_string());
+        options.insert_str("tid".to_string(), tid.to_string());
+        options.insert_str("uid".to_string(), uid.to_string());
         options.extend(vars);
 
         self.do_action("error", &options).await
     }
 
-    async fn do_action(&mut self, name: &str, options: &Vars) -> Result<ActionResult, Status> {
+    pub async fn do_action(&mut self, name: &str, options: &Vars) -> Result<ActionResult, Status> {
         let resp = self
-            .inner
+            .client
             .action(Request::new(ActionOptions {
                 name: name.to_string(),
                 options: Some(options.prost_vars()),
