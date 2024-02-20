@@ -12,12 +12,6 @@ macro_rules! unpack_value_number {
     };
 }
 
-// macro_rules! unpack_value_bool {
-//     ($value: ident, $name: expr) => {
-//         $value.get($name).unwrap().as_bool().unwrap()
-//     };
-// }
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ProcInfo {
     pub id: String,
@@ -37,12 +31,11 @@ pub struct TaskInfo {
     pub name: String,
     pub proc_id: String,
     pub node_id: String,
-    pub kind: String,
+    pub r#type: String,
     pub state: String,
     pub action_state: String,
     pub start_time: i64,
     pub end_time: i64,
-    pub vars: String,
     pub timestamp: i64,
 }
 
@@ -92,12 +85,11 @@ impl From<&serde_json::Value> for TaskInfo {
             name: unpack_value_string!(value, "name"),
             proc_id: unpack_value_string!(value, "proc_id"),
             node_id: unpack_value_string!(value, "node_id"),
-            kind: unpack_value_string!(value, "kind"),
+            r#type: unpack_value_string!(value, "type"),
             state: unpack_value_string!(value, "state"),
             action_state: unpack_value_string!(value, "action_state"),
             start_time: unpack_value_number!(value, "start_time") as i64,
             end_time: unpack_value_number!(value, "end_time") as i64,
-            vars: unpack_value_string!(value, "vars"),
             timestamp: unpack_value_number!(value, "timestamp") as i64,
         }
     }

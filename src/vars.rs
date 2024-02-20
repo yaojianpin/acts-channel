@@ -66,10 +66,6 @@ impl Vars {
         }
     }
 
-    // pub fn value(&self, key: &str) -> Option<&prost_types::Value> {
-    //     self.inner.fields.get(key)
-    // }
-
     pub fn value_str(&self, key: &str) -> Option<&str> {
         self.inner.get(key).map(|v| v.as_str().unwrap())
     }

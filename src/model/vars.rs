@@ -32,15 +32,8 @@ impl Vars {
             inner: value.clone(),
         }
     }
-    // pub fn len(&self) -> usize {
-    //     self.inner.len()
-    // }
-    pub fn json_vars(&self) -> serde_json::Map<String, serde_json::Value> {
-        // let value = prost_types::Value {
-        //     kind: Some(prost_types::value::Kind::StructValue(self.inner.clone())),
-        // };
-        // utils::prost_to_json(&value).as_object().unwrap().clone()
 
+    pub fn json_vars(&self) -> serde_json::Map<String, serde_json::Value> {
         self.inner.clone()
     }
 
@@ -62,10 +55,6 @@ impl Vars {
             self.inner.insert(k.to_string(), v.clone());
         }
     }
-
-    // pub fn value(&self, key: &str) -> Option<&prost_types::Value> {
-    //     self.inner.fields.get(key)
-    // }
 
     pub fn value_str(&self, key: &str) -> Option<&str> {
         self.inner.get(key).map(|v| v.as_str().unwrap())

@@ -38,21 +38,25 @@ message WorkflowState {
   google.protobuf.Value outputs = 7;
 }
 
+message WorkflowModel {
+  string id = 1;
+  string tag = 2;
+  string name = 3;
+}
 message WorkflowMessage {
   string id = 1;
   string name = 2;
   string state = 3;
   string type = 4;
-  string model_id = 5;
-  string model_tag = 6;
-  string model_name = 7;
-  string proc_id = 8;
-  string key = 9;
-  google.protobuf.Value inputs = 10;
-  google.protobuf.Value outputs = 11;
-  string tag = 12;
-  int64 start_time = 13;
-  int64 end_time = 14;
+  string source = 5;
+  WorkflowModel model = 6;
+  string proc_id = 9;
+  string key = 10;
+  google.protobuf.Value inputs = 11;
+  google.protobuf.Value outputs = 12;
+  string tag = 13;
+  int64 start_time = 14;
+  int64 end_time = 15;
 }
 
 message ActionResult {

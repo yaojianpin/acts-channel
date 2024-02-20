@@ -1,6 +1,20 @@
-use crate::WorkflowMessage;
+use crate::{WorkflowMessage, WorkflowModel};
 use serde::{Deserialize, Serialize};
+
 type Vars = serde_json::Map<String, serde_json::Value>;
+
+#[derive(Default, Serialize, Deserialize, Clone, Debug)]
+pub struct Model {
+    /// workflow id
+    pub id: String,
+
+    /// workflow tag
+    pub tag: String,
+
+    /// workflow name
+    pub name: String,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Message {
     /// task id
@@ -15,14 +29,11 @@ pub struct Message {
     /// message type which is node kind or other message type
     pub r#type: String,
 
-    /// workflow id
-    pub model_id: String,
+    /// message source on workflow, step and act
+    pub source: String,
 
-    /// workflow tag
-    pub model_tag: String,
-
-    /// workflow name
-    pub model_name: String,
+    /// workflow model
+    pub model: Model,
 
     /// proc id
     pub proc_id: String,
@@ -47,6 +58,16 @@ pub struct Message {
     pub end_time: i64,
 }
 
+impl From<WorkflowModel> for Model {
+    fn from(v: WorkflowModel) -> Self {
+        Self {
+            id: v.id,
+            name: v.name,
+            tag: v.tag,
+        }
+    }
+}
+
 impl From<WorkflowMessage> for Message {
     fn from(v: WorkflowMessage) -> Self {
         let inputs = crate::Vars::from_prost(&v.inputs.unwrap());
@@ -54,11 +75,10 @@ impl From<WorkflowMessage> for Message {
         Self {
             id: v.id,
             r#type: v.r#type,
+            source: v.source,
             name: v.name,
             proc_id: v.proc_id,
-            model_id: v.model_id,
-            model_name: v.model_name,
-            model_tag: v.model_tag,
+            model: v.model.unwrap().into(),
             key: v.key,
             state: v.state,
             tag: v.tag,

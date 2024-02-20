@@ -56,15 +56,9 @@ impl ActsChannel {
         self.do_action("rm", &options).await
     }
 
-    pub async fn start(
-        &mut self,
-        mid: &str,
-        uid: &str,
-        vars: &Vars,
-    ) -> Result<ActionResult, Status> {
+    pub async fn start(&mut self, mid: &str, vars: &Vars) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
         options.insert_str("mid".to_string(), mid);
-        options.insert_str("uid".to_string(), uid);
         options.extend(vars);
 
         let resp = self
@@ -78,17 +72,43 @@ impl ActsChannel {
         Ok(resp.into_inner())
     }
 
-    pub async fn submit(
+    pub async fn push(
         &mut self,
         pid: &str,
         tid: &str,
-        uid: &str,
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
         options.insert_str("pid".to_string(), pid);
         options.insert_str("tid".to_string(), tid);
-        options.insert_str("uid".to_string(), uid);
+        options.extend(vars);
+
+        self.do_action("push", &options).await
+    }
+
+    pub async fn remove(
+        &mut self,
+        pid: &str,
+        tid: &str,
+        vars: &Vars,
+    ) -> Result<ActionResult, Status> {
+        let mut options = Vars::new();
+        options.insert_str("pid".to_string(), pid);
+        options.insert_str("tid".to_string(), tid);
+        options.extend(vars);
+
+        self.do_action("remove", &options).await
+    }
+
+    pub async fn submit(
+        &mut self,
+        pid: &str,
+        tid: &str,
+        vars: &Vars,
+    ) -> Result<ActionResult, Status> {
+        let mut options = Vars::new();
+        options.insert_str("pid".to_string(), pid);
+        options.insert_str("tid".to_string(), tid);
         options.extend(vars);
 
         self.do_action("submit", &options).await
@@ -98,13 +118,11 @@ impl ActsChannel {
         &mut self,
         pid: &str,
         tid: &str,
-        uid: &str,
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
         options.insert_str("pid".to_string(), pid);
         options.insert_str("tid".to_string(), tid);
-        options.insert_str("uid".to_string(), uid);
         options.extend(vars);
 
         self.do_action("complete", &options).await
@@ -114,14 +132,12 @@ impl ActsChannel {
         &mut self,
         pid: &str,
         tid: &str,
-        uid: &str,
         to: &str,
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
         options.insert_str("pid".to_string(), pid);
         options.insert_str("tid".to_string(), tid.to_string());
-        options.insert_str("uid".to_string(), uid.to_string());
         options.insert_str("to".to_string(), to.to_string());
         options.extend(vars);
 
@@ -132,13 +148,11 @@ impl ActsChannel {
         &mut self,
         pid: &str,
         tid: &str,
-        uid: &str,
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
         options.insert_str("pid".to_string(), pid.to_string());
         options.insert_str("tid".to_string(), tid.to_string());
-        options.insert_str("uid".to_string(), uid.to_string());
         options.extend(vars);
 
         self.do_action("cancel", &options).await
@@ -148,13 +162,11 @@ impl ActsChannel {
         &mut self,
         pid: &str,
         tid: &str,
-        uid: &str,
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
         options.insert_str("pid".to_string(), pid.to_string());
         options.insert_str("tid".to_string(), tid.to_string());
-        options.insert_str("uid".to_string(), uid.to_string());
         options.extend(vars);
 
         self.do_action("skip", &options).await
@@ -164,13 +176,11 @@ impl ActsChannel {
         &mut self,
         pid: &str,
         tid: &str,
-        uid: &str,
         vars: &Vars,
     ) -> Result<ActionResult, Status> {
         let mut options = Vars::new();
         options.insert_str("pid".to_string(), pid.to_string());
         options.insert_str("tid".to_string(), tid.to_string());
-        options.insert_str("uid".to_string(), uid.to_string());
         options.extend(vars);
 
         self.do_action("error", &options).await

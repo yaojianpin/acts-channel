@@ -40,7 +40,7 @@ let client = ActsChannel::new(
 
 ## Action
 
-Executes action to interact with acts-server, such as `deploy`, `start`, `submit`, `complete`, `back`, `cancel`, `skip`, `error`, etc. For more information, please see [`acts-server`](<https://github.com/yaojianpin/acts-server>)
+Executes action to interact with acts-server, such as `deploy`, `start`, `push`, `remove`, `submit`, `complete`, `back`, `cancel`, `skip`, `error`, etc. For more information, please see [`acts-server`](<https://github.com/yaojianpin/acts-server>)
 
 ### Deploy
 ```rust,no_run
@@ -55,7 +55,7 @@ let result: ActionResult = resp.into_inner();
 let mut vars = Vars::new();
 vars.insert("var1", &true.into());
 let resp = client
-    .submit("pid", "tid", "u1", &vars).await?;
+    .submit("pid", "tid", &vars).await?;
 let result: ActionResult = resp.into_inner();
 
 ```
@@ -65,7 +65,7 @@ let result: ActionResult = resp.into_inner();
 let mut vars = Vars::new();
 vars.insert("var1", json!("value1"));
 let resp = client
-    .complete("pid", "tid", "u1", &vars).await?;
+    .complete("pid", "tid", &vars).await?;
 let result: ActionResult = resp.into_inner();
 
 ```
@@ -75,7 +75,7 @@ let result: ActionResult = resp.into_inner();
 let mut vars = Vars::new();
 vars.insert("to", &json!("step1"));
 let resp = client
-    .back("pid", "tid", "u1", &vars).await?;
+    .back("pid", "tid", &vars).await?;
 let result: ActionResult = resp.into_inner();
 
 ```
@@ -85,7 +85,7 @@ let result: ActionResult = resp.into_inner();
 let mut vars = Vars::new();
 vars.insert("var1", json!("value1"));
 let resp = client
-    .cancel("pid", "tid", "u1", &vars).await?;
+    .cancel("pid", "tid", &vars).await?;
 let result: ActionResult = resp.into_inner();
 
 ```
@@ -95,7 +95,7 @@ let result: ActionResult = resp.into_inner();
 let mut vars = Vars::new();
 vars.insert("var1", json!("value1"));
 let resp = client
-    .skip("pid", "tid", "u1", &vars).await?;
+    .skip("pid", "tid", &vars).await?;
 let result: ActionResult = resp.into_inner();
 
 ```
@@ -105,7 +105,27 @@ let result: ActionResult = resp.into_inner();
 let mut vars = Vars::new();
 vars.insert("error_code", json!("err1"));
 let resp = client
-    .error("pid", "tid", "u1", &vars).await?;
+    .error("pid", "tid", &vars).await?;
+let result: ActionResult = resp.into_inner();
+
+```
+
+### Push
+```rust,no_run
+let mut vars = Vars::new();
+vars.insert("var1", json!("value1"));
+let resp = client
+    .push("pid", "tid", &vars).await?;
+let result: ActionResult = resp.into_inner();
+
+```
+
+### Remove
+```rust,no_run
+let mut vars = Vars::new();
+vars.insert("var1", json!("value1"));
+let resp = client
+    .remove("pid", "tid", &vars).await?;
 let result: ActionResult = resp.into_inner();
 
 ```
