@@ -2,15 +2,15 @@
 authors = ["yao <39178011@qq.com>"]
 categories = ["workflow"]
 description = "acts client channel for acts-server"
-documentation = "https://rbatis.github.io/rbatis.io"
+documentation = "https://github.com/yaojianpin/acts-channel"
 edition = "2021"
-homepage = "https://rbatis.github.io/rbatis.io"
+homepage = "https://github.com/yaojianpin/acts-channel"
 keywords = ["workflow"]
 license = "MIT"
 name = "acts-channel"
 readme = "Readme.md"
 repository = "https://github.com/yaojianpin/acts-channel.git"
-version = "0.3.0"
+version = "0.3.1"
 
 [dependencies]
 futures = "0.3.28"

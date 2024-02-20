@@ -1,5 +1,5 @@
 # acts-channel
-provides an acts client channel for acts-server
+provides an acts client channel for workflow engine server [`acts-server`](<https://github.com/yaojianpin/acts-server>)
 
 The crate is called acts-channel and you can depend on it via cargo:
 ```toml
@@ -13,6 +13,8 @@ acts-channel = { git = "https://github.com/yaojianpin/acts-channel.git" }
 ```
 
 # Usage
+
+Before connecting, please download  [`acts-server`](<https://github.com/yaojianpin/acts-server>) and start it
 
 ## Message
 Listening to the message from [`acts-server`](<https://github.com/yaojianpin/acts-server>)
