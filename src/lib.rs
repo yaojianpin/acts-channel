@@ -2,7 +2,7 @@
 
 #![doc = include_str!("../README.md")]
 
-tonic::include_proto!("acts.grpc");
+include!("../proto/acts.grpc.rs");
 
 mod channel;
 mod vars;
