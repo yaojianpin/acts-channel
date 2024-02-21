@@ -5,12 +5,12 @@ description = "acts client channel for acts-server"
 documentation = "https://github.com/yaojianpin/acts-channel"
 edition = "2021"
 homepage = "https://github.com/yaojianpin/acts-channel"
-keywords = ["workflow"]
+keywords = ["workflow", "channel"]
 license = "MIT"
 name = "acts-channel"
 readme = "Readme.md"
 repository = "https://github.com/yaojianpin/acts-channel.git"
-version = "0.3.1"
+version = "0.3.2"
 
 [dependencies]
 futures = "0.3.28"

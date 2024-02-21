@@ -1,4 +1,6 @@
 # acts-channel
+[![Build](https://github.com/yaojianpin/acts-channel/actions/workflows/build.yml/badge.svg)](https://github.com/yaojianpin/acts-channel/actions?workflow=build)
+
 provides an acts client channel for workflow engine server [`acts-server`](<https://github.com/yaojianpin/acts-server>)
 
 The crate is called acts-channel and you can depend on it via cargo:
@@ -19,7 +21,7 @@ Before connecting, please download  [`acts-server`](<https://github.com/yaojianp
 ## Message
 Listening to the message from [`acts-server`](<https://github.com/yaojianpin/acts-server>)
 
-```rust,no_run
+```rust,ignore
 use acts_channel::{ActsChannel, ActsOptions};
 
 fn on_message(msg: &Message) {
@@ -45,7 +47,7 @@ let client = ActsChannel::new(
 Executes action to interact with acts-server, such as `deploy`, `start`, `push`, `remove`, `submit`, `complete`, `back`, `cancel`, `skip`, `error`, etc. For more information, please see [`acts-server`](<https://github.com/yaojianpin/acts-server>)
 
 ### Deploy
-```rust,no_run
+```rust,ignore
 let resp = client
     .deploy("mid", "model yml here").await?;
 let result: ActionResult = resp.into_inner();
@@ -53,7 +55,7 @@ let result: ActionResult = resp.into_inner();
 ```
 
 ### Start
-```rust,no_run
+```rust,ignore
 let mut vars = Vars::new();
 vars.insert("var1", &true.into());
 let resp = client
@@ -63,7 +65,7 @@ let result: ActionResult = resp.into_inner();
 ```
 
 ### Complete
-```rust,no_run
+```rust,ignore
 let mut vars = Vars::new();
 vars.insert("var1", json!("value1"));
 let resp = client
@@ -73,7 +75,7 @@ let result: ActionResult = resp.into_inner();
 ```
 
 ### Back
-```rust,no_run
+```rust,ignore
 let mut vars = Vars::new();
 vars.insert("to", &json!("step1"));
 let resp = client
@@ -83,7 +85,7 @@ let result: ActionResult = resp.into_inner();
 ```
 
 ### Cancel
-```rust,no_run
+```rust,ignore
 let mut vars = Vars::new();
 vars.insert("var1", json!("value1"));
 let resp = client
@@ -93,7 +95,7 @@ let result: ActionResult = resp.into_inner();
 ```
 
 ### Skip
-```rust,no_run
+```rust,ignore
 let mut vars = Vars::new();
 vars.insert("var1", json!("value1"));
 let resp = client
@@ -103,7 +105,7 @@ let result: ActionResult = resp.into_inner();
 ```
 
 ### Error
-```rust,no_run
+```rust,ignore
 let mut vars = Vars::new();
 vars.insert("error_code", json!("err1"));
 let resp = client
@@ -113,7 +115,7 @@ let result: ActionResult = resp.into_inner();
 ```
 
 ### Push
-```rust,no_run
+```rust,ignore
 let mut vars = Vars::new();
 vars.insert("var1", json!("value1"));
 let resp = client
@@ -123,7 +125,7 @@ let result: ActionResult = resp.into_inner();
 ```
 
 ### Remove
-```rust,no_run
+```rust,ignore
 let mut vars = Vars::new();
 vars.insert("var1", json!("value1"));
 let resp = client
