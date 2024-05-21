@@ -17,7 +17,7 @@ pub struct Model {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Message {
-    /// task id
+    /// message id
     pub id: String,
 
     /// node name or action name
@@ -36,7 +36,10 @@ pub struct Message {
     pub model: Model,
 
     /// proc id
-    pub proc_id: String,
+    pub pid: String,
+
+    /// task id
+    pub tid: String,
 
     /// nodeId or specific message key
     pub key: String,
@@ -77,7 +80,8 @@ impl From<WorkflowMessage> for Message {
             r#type: v.r#type,
             source: v.source,
             name: v.name,
-            proc_id: v.proc_id,
+            pid: v.pid,
+            tid: v.tid,
             model: v.model.unwrap().into(),
             key: v.key,
             state: v.state,

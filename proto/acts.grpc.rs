@@ -1,5 +1,49 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListValue {
+    #[prost(message, repeated, tag = "1")]
+    pub values: ::prost::alloc::vec::Vec<ProtoJsonValue>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Struct {
+    #[prost(map = "string, message", tag = "1")]
+    pub fields: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ProtoJsonValue,
+    >,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ProtoJsonValue {
+    #[prost(oneof = "proto_json_value::Kind", tags = "1, 2, 3, 4, 5, 6, 7, 8")]
+    pub kind: ::core::option::Option<proto_json_value::Kind>,
+}
+/// Nested message and enum types in `ProtoJsonValue`.
+pub mod proto_json_value {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Kind {
+        #[prost(enumeration = "super::NullValue", tag = "1")]
+        NullValue(i32),
+        #[prost(double, tag = "2")]
+        F64Value(f64),
+        #[prost(int64, tag = "3")]
+        I64Value(i64),
+        #[prost(uint64, tag = "4")]
+        U64Value(u64),
+        #[prost(string, tag = "5")]
+        StringValue(::prost::alloc::string::String),
+        #[prost(bool, tag = "6")]
+        BoolValue(bool),
+        #[prost(message, tag = "7")]
+        StructValue(super::Struct),
+        #[prost(message, tag = "8")]
+        ListValue(super::ListValue),
+    }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MessageOptions {
     #[prost(string, tag = "1")]
     pub client_id: ::prost::alloc::string::String,
@@ -25,7 +69,7 @@ pub struct ActionOptions {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "2")]
-    pub options: ::core::option::Option<::prost_types::Value>,
+    pub options: ::core::option::Option<ProtoJsonValue>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -43,7 +87,7 @@ pub struct WorkflowState {
     #[prost(int64, tag = "6")]
     pub end_time: i64,
     #[prost(message, optional, tag = "7")]
-    pub outputs: ::core::option::Option<::prost_types::Value>,
+    pub outputs: ::core::option::Option<ProtoJsonValue>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -71,29 +115,44 @@ pub struct WorkflowMessage {
     #[prost(message, optional, tag = "6")]
     pub model: ::core::option::Option<WorkflowModel>,
     #[prost(string, tag = "9")]
-    pub proc_id: ::prost::alloc::string::String,
+    pub pid: ::prost::alloc::string::String,
     #[prost(string, tag = "10")]
+    pub tid: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
     pub key: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "11")]
-    pub inputs: ::core::option::Option<::prost_types::Value>,
-    #[prost(message, optional, tag = "12")]
-    pub outputs: ::core::option::Option<::prost_types::Value>,
-    #[prost(string, tag = "13")]
+    #[prost(string, tag = "12")]
     pub tag: ::prost::alloc::string::String,
-    #[prost(int64, tag = "14")]
-    pub start_time: i64,
+    #[prost(message, optional, tag = "13")]
+    pub inputs: ::core::option::Option<ProtoJsonValue>,
+    #[prost(message, optional, tag = "14")]
+    pub outputs: ::core::option::Option<ProtoJsonValue>,
     #[prost(int64, tag = "15")]
+    pub start_time: i64,
+    #[prost(int64, tag = "16")]
     pub end_time: i64,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ActionResult {
-    #[prost(int64, tag = "1")]
-    pub start_time: i64,
-    #[prost(int64, tag = "2")]
-    pub end_time: i64,
-    #[prost(message, optional, tag = "3")]
-    pub data: ::core::option::Option<::prost_types::Value>,
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum NullValue {
+    NullValue = 0,
+}
+impl NullValue {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            NullValue::NullValue => "NULL_VALUE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "NULL_VALUE" => Some(Self::NullValue),
+            _ => None,
+        }
+    }
 }
 /// Generated client implementations.
 pub mod acts_service_client {
@@ -189,7 +248,7 @@ pub mod acts_service_client {
         pub async fn action(
             &mut self,
             request: impl tonic::IntoRequest<super::ActionOptions>,
-        ) -> Result<tonic::Response<super::ActionResult>, tonic::Status> {
+        ) -> Result<tonic::Response<super::ProtoJsonValue>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -227,7 +286,7 @@ pub mod acts_service_server {
         async fn action(
             &self,
             request: tonic::Request<super::ActionOptions>,
-        ) -> Result<tonic::Response<super::ActionResult>, tonic::Status>;
+        ) -> Result<tonic::Response<super::ProtoJsonValue>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct ActsServiceServer<T: ActsService> {
@@ -334,7 +393,7 @@ pub mod acts_service_server {
                         T: ActsService,
                     > tonic::server::UnaryService<super::ActionOptions>
                     for actionSvc<T> {
-                        type Response = super::ActionResult;
+                        type Response = super::ProtoJsonValue;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,

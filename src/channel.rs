@@ -35,7 +35,9 @@ impl ActsChannel {
         on_message: F,
         options: &ActsOptions,
     ) {
-        Self::on_message(&mut self.client, client_id, on_message, options).await;
+        let mut client = self.client.clone();
+        self.on_message(&mut client, client_id, on_message, options)
+            .await;
     }
 
     pub async fn deploy(&mut self, model: &str, mid: Option<&str>) -> Result<ActionResult, Status> {
@@ -49,10 +51,7 @@ impl ActsChannel {
         self.do_action("deploy", &options).await
     }
 
-    pub async fn rm(&mut self, mid: &str) -> Result<ActionResult, Status> {
-        let mut options = Vars::new();
-        options.insert_str("mid".to_string(), mid.to_string());
-
+    pub async fn rm(&mut self, options: &Vars) -> Result<ActionResult, Status> {
         self.do_action("rm", &options).await
     }
 
@@ -60,7 +59,7 @@ impl ActsChannel {
         let mut options = Vars::new();
         options.insert_str("mid".to_string(), mid);
         options.extend(vars);
-
+        let mut ret = ActionResult::begin();
         let resp = self
             .client
             .action(Request::new(ActionOptions {
@@ -68,8 +67,8 @@ impl ActsChannel {
                 options: Some(options.prost_vars()),
             }))
             .await?;
-
-        Ok(resp.into_inner())
+        ret.data = resp.into_inner();
+        ret.end()
     }
 
     pub async fn push(
@@ -186,7 +185,14 @@ impl ActsChannel {
         self.do_action("error", &options).await
     }
 
+    async fn ack(&mut self, id: &str) -> Result<ActionResult, Status> {
+        let mut options = Vars::new();
+        options.insert_str("id".to_string(), id.to_string());
+        self.do_action("ack", &options).await
+    }
+
     pub async fn do_action(&mut self, name: &str, options: &Vars) -> Result<ActionResult, Status> {
+        let mut ret = ActionResult::begin();
         let resp = self
             .client
             .action(Request::new(ActionOptions {
@@ -194,11 +200,12 @@ impl ActsChannel {
                 options: Some(options.prost_vars()),
             }))
             .await?;
-
-        Ok(resp.into_inner())
+        ret.data = resp.into_inner();
+        ret.end()
     }
 
     async fn on_message(
+        &self,
         client: &mut ActsServiceClient<Channel>,
         client_id: &str,
         handle: impl Fn(&Message) + Send + Sync + 'static,
@@ -233,12 +240,15 @@ impl ActsChannel {
                 .to_string(),
         });
         let mut stream = client.on_message(request).await.unwrap().into_inner();
-
+        let chan = self.clone();
         tokio::spawn(async move {
+            let mut chan = chan.clone();
             while let Some(item) = stream.next().await {
                 if !item.is_err() {
                     let m: Message = item.unwrap().into();
-                    handle(&m);
+                    if let Ok(_) = chan.ack(&m.id).await {
+                        handle(&m);
+                    }
                 }
             }
         });

@@ -1,5 +1,6 @@
+use crate::ProtoJsonValue;
 use serde_json::json;
-use std::ops::Deref;
+use std::{collections::HashMap, ops::Deref};
 
 pub struct Vars {
     pub(crate) inner: serde_json::Map<String, serde_json::Value>,
@@ -31,7 +32,7 @@ impl Vars {
         self.inner.clone()
     }
 
-    pub fn from_prost(value: &prost_types::Value) -> Self {
+    pub fn from_prost(value: &ProtoJsonValue) -> Self {
         Self {
             inner: utils::prost_to_json(value).as_object().unwrap().clone(),
         }
@@ -47,14 +48,14 @@ impl Vars {
         self.inner.clone()
     }
 
-    pub fn prost_vars(&self) -> prost_types::Value {
-        let mut map = prost::alloc::collections::BTreeMap::new();
+    pub fn prost_vars(&self) -> crate::ProtoJsonValue {
+        let mut map = HashMap::new();
         for (k, v) in self.inner.iter() {
             map.insert(k.to_string(), utils::json_to_prost(v));
         }
 
-        prost_types::Value {
-            kind: Some(prost_types::value::Kind::StructValue(prost_types::Struct {
+        crate::ProtoJsonValue {
+            kind: Some(crate::proto_json_value::Kind::StructValue(crate::Struct {
                 fields: map,
             })),
         }
@@ -97,25 +98,28 @@ impl Vars {
 
 mod utils {
     type JsonValue = serde_json::Value;
-    type ProstValue = prost_types::Value;
+    type ProtoKind = crate::proto_json_value::Kind;
+    use crate::{ListValue, ProtoJsonValue, Struct};
     use serde_json::json;
-    use std::collections::BTreeMap;
+    use std::collections::HashMap;
 
-    pub fn prost_to_json(v: &prost_types::Value) -> JsonValue {
+    pub fn prost_to_json(v: &ProtoJsonValue) -> JsonValue {
         match &v.kind {
             Some(kind) => match kind {
-                prost_types::value::Kind::NullValue(_) => JsonValue::Null,
-                prost_types::value::Kind::NumberValue(v) => json!(v),
-                prost_types::value::Kind::StringValue(v) => json!(v),
-                prost_types::value::Kind::BoolValue(v) => json!(v),
-                prost_types::value::Kind::StructValue(v) => {
+                ProtoKind::NullValue(_) => JsonValue::Null,
+                ProtoKind::F64Value(v) => json!(v),
+                ProtoKind::I64Value(v) => json!(v),
+                ProtoKind::U64Value(v) => json!(v),
+                ProtoKind::StringValue(v) => json!(v),
+                ProtoKind::BoolValue(v) => json!(v),
+                ProtoKind::StructValue(v) => {
                     let mut obj = serde_json::Map::new();
                     for (k, v) in v.fields.iter() {
                         obj.insert(k.to_string(), prost_to_json(v));
                     }
                     JsonValue::Object(obj)
                 }
-                prost_types::value::Kind::ListValue(list) => {
+                ProtoKind::ListValue(list) => {
                     let mut arr = Vec::new();
                     for v in list.values.iter() {
                         arr.push(prost_to_json(v));
@@ -128,60 +132,47 @@ mod utils {
         }
     }
 
-    // pub fn as_f64(v: &prost_types::Value) -> Option<&f64> {
-    //     match &v.kind {
-    //         Some(kind) => match kind {
-    //             prost_types::value::Kind::NumberValue(v) => Some(v),
-    //             _ => None,
-    //         },
-    //         _ => None,
-    //     }
-    // }
-
-    // pub fn as_str(v: &prost_types::Value) -> Option<&str> {
-    //     match &v.kind {
-    //         Some(kind) => match kind {
-    //             prost_types::value::Kind::StringValue(v) => Some(v),
-    //             _ => None,
-    //         },
-    //         _ => None,
-    //     }
-    // }
-
-    pub fn json_to_prost(v: &JsonValue) -> ProstValue {
+    pub fn json_to_prost(v: &JsonValue) -> ProtoJsonValue {
         match v {
-            serde_json::Value::Null => ProstValue {
-                kind: Some(prost_types::value::Kind::NullValue(0)),
+            serde_json::Value::Null => ProtoJsonValue {
+                kind: Some(ProtoKind::NullValue(0)),
             },
-            serde_json::Value::Bool(v) => ProstValue {
-                kind: Some(prost_types::value::Kind::BoolValue(v.clone())),
+            serde_json::Value::Bool(v) => ProtoJsonValue {
+                kind: Some(ProtoKind::BoolValue(v.clone())),
             },
-            serde_json::Value::Number(v) => ProstValue {
-                kind: Some(prost_types::value::Kind::NumberValue(v.as_f64().unwrap())),
-            },
-            serde_json::Value::String(v) => ProstValue {
-                kind: Some(prost_types::value::Kind::StringValue(v.clone())),
+            serde_json::Value::Number(v) => {
+                if v.is_i64() {
+                    return ProtoJsonValue {
+                        kind: Some(ProtoKind::I64Value(v.as_i64().unwrap())),
+                    };
+                } else if v.is_u64() {
+                    return ProtoJsonValue {
+                        kind: Some(ProtoKind::U64Value(v.as_u64().unwrap())),
+                    };
+                }
+                ProtoJsonValue {
+                    kind: Some(ProtoKind::F64Value(v.as_f64().unwrap())),
+                }
+            }
+            serde_json::Value::String(v) => ProtoJsonValue {
+                kind: Some(ProtoKind::StringValue(v.clone())),
             },
             serde_json::Value::Array(arr) => {
                 let mut values = Vec::new();
                 for v in arr {
                     values.push(json_to_prost(v));
                 }
-                ProstValue {
-                    kind: Some(prost_types::value::Kind::ListValue(
-                        prost_types::ListValue { values },
-                    )),
+                ProtoJsonValue {
+                    kind: Some(ProtoKind::ListValue(ListValue { values })),
                 }
             }
             serde_json::Value::Object(obj) => {
-                let mut fields = BTreeMap::new();
+                let mut fields = HashMap::new();
                 for (k, v) in obj {
                     fields.insert(k.to_string(), json_to_prost(v));
                 }
-                ProstValue {
-                    kind: Some(prost_types::value::Kind::StructValue(prost_types::Struct {
-                        fields,
-                    })),
+                ProtoJsonValue {
+                    kind: Some(ProtoKind::StructValue(Struct { fields })),
                 }
             }
         }
