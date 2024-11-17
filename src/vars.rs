@@ -1,70 +1,182 @@
-use crate::ProtoJsonValue;
-use serde_json::json;
-use std::{collections::HashMap, ops::Deref};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Map, Value};
+use std::ops::{Deref, DerefMut};
 
+#[derive(Default, Clone)]
 pub struct Vars {
-    pub(crate) inner: serde_json::Map<String, serde_json::Value>,
+    inner: Map<String, Value>,
+}
+
+pub struct Iter<'a> {
+    iter: serde_json::map::Iter<'a>,
+}
+
+pub struct IterMut<'a> {
+    iter: serde_json::map::IterMut<'a>,
+}
+
+impl Serialize for Vars {
+    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.inner.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Vars {
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        core::result::Result::Ok(Self {
+            inner: serde_json::Map::deserialize(deserializer)?,
+        })
+    }
 }
 
 impl Deref for Vars {
-    type Target = serde_json::Map<String, serde_json::Value>;
-
+    type Target = Map<String, Value>;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }
 
+impl DerefMut for Vars {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl FromIterator<(String, Value)> for Vars {
+    fn from_iter<T: IntoIterator<Item = (String, Value)>>(iter: T) -> Self {
+        Self {
+            inner: Map::from_iter(iter),
+        }
+    }
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = (&'a String, &'a Value);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<'a> Iterator for IterMut<'a> {
+    type Item = (&'a String, &'a mut Value);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Vars {
+    type Item = (&'a String, &'a mut Value);
+    type IntoIter = IterMut<'a>;
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        IterMut {
+            iter: self.inner.iter_mut(),
+        }
+    }
+}
+
+impl IntoIterator for &Vars {
+    type Item = (String, Value);
+    type IntoIter = serde_json::map::IntoIter;
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.clone().into_iter()
+    }
+}
+
+impl std::fmt::Debug for Vars {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = serde_json::to_string(&self.inner).map_err(|_| std::fmt::Error)?;
+        f.write_str(&text)
+    }
+}
+
 impl std::fmt::Display for Vars {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let text = serde_json::ser::to_string_pretty(&self.inner).expect("convert vars to string");
+        let text = serde_json::to_string(&self.inner).map_err(|_| std::fmt::Error)?;
         f.write_str(&text)
+    }
+}
+
+impl From<serde_json::Map<String, Value>> for Vars {
+    fn from(value: serde_json::Map<String, Value>) -> Self {
+        from_json(&value)
+    }
+}
+
+impl From<serde_json::Value> for Vars {
+    fn from(value: serde_json::Value) -> Self {
+        if let serde_json::Value::Object(map) = &value {
+            return from_json(map);
+        }
+        Vars::new()
+    }
+}
+
+impl Into<serde_json::Value> for Vars {
+    fn into(self) -> serde_json::Value {
+        serde_json::Value::Object(self.inner)
     }
 }
 
 impl Vars {
     pub fn new() -> Self {
-        Self {
-            inner: serde_json::Map::new(),
-        }
+        Self { inner: Map::new() }
     }
 
-    pub fn into_inner(&self) -> serde_json::Map<String, serde_json::Value> {
-        self.inner.clone()
+    pub fn with<T>(self, name: &str, value: T) -> Self
+    where
+        T: Serialize,
+    {
+        let mut vars = self.inner;
+        vars.insert(name.to_string(), json!(value));
+
+        Self { inner: vars }
     }
 
-    pub fn from_prost(value: &ProtoJsonValue) -> Self {
-        Self {
-            inner: utils::prost_to_json(value).as_object().unwrap().clone(),
-        }
+    pub fn set<T>(&mut self, name: &str, value: T)
+    where
+        T: Serialize + Clone,
+    {
+        let value = json!(value);
+        self.inner
+            .entry(name.to_string())
+            .and_modify(|v| *v = value.clone())
+            .or_insert(value);
     }
 
-    pub fn from_json(value: &serde_json::Map<String, serde_json::Value>) -> Self {
-        Self {
-            inner: value.clone(),
+    pub fn get<T>(&self, name: &str) -> Option<T>
+    where
+        T: for<'de> Deserialize<'de> + Clone,
+    {
+        if let Some(value) = self.inner.get(name) {
+            if let Ok(value) = serde_json::from_value::<T>(value.clone()) {
+                return Some(value);
+            }
         }
+
+        None
     }
 
-    pub fn json_vars(&self) -> serde_json::Map<String, serde_json::Value> {
-        self.inner.clone()
+    pub fn get_value(&self, name: &str) -> Option<&Value> {
+        self.inner.get(name)
     }
 
-    pub fn prost_vars(&self) -> crate::ProtoJsonValue {
-        let mut map = HashMap::new();
-        for (k, v) in self.inner.iter() {
-            map.insert(k.to_string(), utils::json_to_prost(v));
-        }
-
-        crate::ProtoJsonValue {
-            kind: Some(crate::proto_json_value::Kind::StructValue(crate::Struct {
-                fields: map,
-            })),
-        }
+    pub fn extend(mut self, vars: &Vars) -> Self {
+        self.inner.extend(vars);
+        self
     }
 
-    pub fn extend(&mut self, vars: &Vars) {
-        for (k, v) in vars.inner.iter() {
-            self.inner.insert(k.to_string(), v.clone());
-        }
+    pub fn to_bytes(&self) -> Vec<u8> {
+        serde_json::to_vec(&self.inner).unwrap()
     }
 
     pub fn value_str(&self, key: &str) -> Option<&str> {
@@ -74,107 +186,72 @@ impl Vars {
     pub fn value_number(&self, key: &str) -> Option<f64> {
         self.inner.get(key).map(|v| v.as_f64().unwrap())
     }
-
-    pub fn insert(&mut self, key: &str, value: &serde_json::Value) {
-        self.inner.insert(key.to_string(), value.clone());
-    }
-
-    pub fn insert_str(&mut self, key: String, value: impl Into<String>) {
-        self.inner.insert(key, json!(value.into()));
-    }
-
-    pub fn insert_number(&mut self, key: String, value: f64) {
-        self.inner.insert(key, json!(value));
-    }
-
-    pub fn rm(&mut self, key: &str) {
-        self.inner.remove(key);
-    }
-
-    pub fn clear(&mut self) {
-        self.inner.clear()
-    }
 }
 
-mod utils {
-    type JsonValue = serde_json::Value;
-    type ProtoKind = crate::proto_json_value::Kind;
-    use crate::{ListValue, ProtoJsonValue, Struct};
-    use serde_json::json;
-    use std::collections::HashMap;
+#[allow(unused)]
+pub fn from_json(map: &serde_json::Map<String, serde_json::Value>) -> Vars {
+    let mut vars = Vars::new();
 
-    pub fn prost_to_json(v: &ProtoJsonValue) -> JsonValue {
-        match &v.kind {
-            Some(kind) => match kind {
-                ProtoKind::NullValue(_) => JsonValue::Null,
-                ProtoKind::F64Value(v) => json!(v),
-                ProtoKind::I64Value(v) => json!(v),
-                ProtoKind::U64Value(v) => json!(v),
-                ProtoKind::StringValue(v) => json!(v),
-                ProtoKind::BoolValue(v) => json!(v),
-                ProtoKind::StructValue(v) => {
-                    let mut obj = serde_json::Map::new();
-                    for (k, v) in v.fields.iter() {
-                        obj.insert(k.to_string(), prost_to_json(v));
-                    }
-                    JsonValue::Object(obj)
-                }
-                ProtoKind::ListValue(list) => {
-                    let mut arr = Vec::new();
-                    for v in list.values.iter() {
-                        arr.push(prost_to_json(v));
-                    }
+    for (k, v) in map {
+        let value = match v {
+            serde_json::Value::Null => Value::Null,
+            serde_json::Value::Bool(v) => Value::Bool(v.clone()),
+            serde_json::Value::Number(v) => from_json_number(v),
+            serde_json::Value::String(v) => Value::String(v.clone()),
+            serde_json::Value::Array(v) => from_json_array(v),
+            serde_json::Value::Object(v) => from_json_object(v),
+        };
 
-                    JsonValue::Array(arr)
-                }
-            },
-            _ => JsonValue::Null,
-        }
+        vars.insert(k.to_string(), value);
     }
 
-    pub fn json_to_prost(v: &JsonValue) -> ProtoJsonValue {
-        match v {
-            serde_json::Value::Null => ProtoJsonValue {
-                kind: Some(ProtoKind::NullValue(0)),
-            },
-            serde_json::Value::Bool(v) => ProtoJsonValue {
-                kind: Some(ProtoKind::BoolValue(v.clone())),
-            },
-            serde_json::Value::Number(v) => {
-                if v.is_i64() {
-                    return ProtoJsonValue {
-                        kind: Some(ProtoKind::I64Value(v.as_i64().unwrap())),
-                    };
-                } else if v.is_u64() {
-                    return ProtoJsonValue {
-                        kind: Some(ProtoKind::U64Value(v.as_u64().unwrap())),
-                    };
-                }
-                ProtoJsonValue {
-                    kind: Some(ProtoKind::F64Value(v.as_f64().unwrap())),
-                }
-            }
-            serde_json::Value::String(v) => ProtoJsonValue {
-                kind: Some(ProtoKind::StringValue(v.clone())),
-            },
-            serde_json::Value::Array(arr) => {
-                let mut values = Vec::new();
-                for v in arr {
-                    values.push(json_to_prost(v));
-                }
-                ProtoJsonValue {
-                    kind: Some(ProtoKind::ListValue(ListValue { values })),
-                }
-            }
-            serde_json::Value::Object(obj) => {
-                let mut fields = HashMap::new();
-                for (k, v) in obj {
-                    fields.insert(k.to_string(), json_to_prost(v));
-                }
-                ProtoJsonValue {
-                    kind: Some(ProtoKind::StructValue(Struct { fields })),
-                }
-            }
-        }
+    vars
+}
+
+#[allow(unused)]
+fn from_json_array(arr: &Vec<serde_json::Value>) -> Value {
+    let mut ret = Vec::new();
+    for v in arr {
+        let value = match v {
+            serde_json::Value::Null => Value::Null,
+            serde_json::Value::Bool(v) => Value::Bool(v.clone()),
+            serde_json::Value::Number(v) => from_json_number(v),
+            serde_json::Value::String(v) => Value::String(v.clone()),
+            serde_json::Value::Array(v) => from_json_array(v),
+            serde_json::Value::Object(v) => from_json_object(v),
+        };
+        ret.push(value);
+    }
+
+    Value::Array(ret)
+}
+
+#[allow(unused)]
+fn from_json_object(o: &serde_json::Map<String, serde_json::Value>) -> Value {
+    let mut map = serde_json::Map::new();
+    for (k, v) in o {
+        let value = match v {
+            serde_json::Value::Null => Value::Null,
+            serde_json::Value::Bool(v) => Value::Bool(v.clone()),
+            serde_json::Value::Number(v) => from_json_number(v),
+            serde_json::Value::String(v) => Value::String(v.clone()),
+            serde_json::Value::Array(v) => from_json_array(v),
+            serde_json::Value::Object(v) => from_json_object(v),
+        };
+
+        map.insert(k.to_string(), value);
+    }
+
+    Value::Object(map)
+}
+
+#[allow(unused)]
+fn from_json_number(n: &serde_json::Number) -> Value {
+    if n.is_i64() {
+        return Value::Number(serde_json::Number::from(n.as_i64().unwrap()));
+    } else if n.is_u64() {
+        return Value::Number(serde_json::Number::from(n.as_u64().unwrap()));
+    } else {
+        return Value::Number(serde_json::Number::from_f64(n.as_f64().unwrap()).unwrap());
     }
 }

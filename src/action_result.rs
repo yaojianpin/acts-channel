@@ -1,18 +1,20 @@
-use crate::{utils, ProtoJsonValue};
+use std::fmt::Debug;
+
+use crate::utils;
 use tonic::Status;
 
-pub struct ActionResult {
+pub struct ActionResult<T> {
     pub start_time: i64,
     pub end_time: i64,
-    pub data: ProtoJsonValue,
+    pub data: Option<T>,
 }
 
-impl ActionResult {
+impl<T> ActionResult<T> {
     pub fn begin() -> Self {
         Self {
             start_time: utils::time_millis(),
             end_time: 0,
-            data: ProtoJsonValue { kind: None },
+            data: None,
         }
     }
 
@@ -27,7 +29,10 @@ impl ActionResult {
     }
 }
 
-impl std::fmt::Debug for ActionResult {
+impl<T> std::fmt::Debug for ActionResult<T>
+where
+    T: Debug,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("State")
             .field("start_time", &self.start_time)
@@ -39,17 +44,17 @@ impl std::fmt::Debug for ActionResult {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ActionResult, Vars};
+    use crate::ActionResult;
 
     #[test]
     fn action_result_begin() {
-        let state = ActionResult::begin();
+        let state = ActionResult::<()>::begin();
         assert!(state.start_time > 0)
     }
 
     #[test]
     fn action_result_end() {
-        let state = ActionResult::begin();
+        let state = ActionResult::<()>::begin();
         std::thread::sleep(std::time::Duration::from_millis(2));
         let result = state.end();
         assert!(result.unwrap().cost() > 0)
@@ -57,11 +62,8 @@ mod tests {
 
     #[test]
     fn action_data_ok() {
-        let mut state = ActionResult::begin();
-
-        let mut vars = Vars::new();
-        vars.insert("name", &().into());
-        state.data = vars.prost_vars();
-        assert_eq!(state.data.kind.is_some(), true);
+        let mut state = ActionResult::<i32>::begin();
+        state.data = Some(1);
+        assert_eq!(state.data.is_some(), true);
     }
 }

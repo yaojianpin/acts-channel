@@ -15,9 +15,12 @@ pub struct ProcInfo {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TaskInfo {
     pub id: String,
+    pub prev: Option<String>,
     pub name: String,
     pub pid: String,
     pub nid: String,
+    pub tag: String,
+    pub key: String,
     pub r#type: String,
     pub state: String,
     pub data: String,
@@ -44,6 +47,7 @@ pub struct MessageInfo {
     pub state: String,
     pub r#type: String,
     pub pid: String,
+    pub nid: String,
     pub key: String,
     pub inputs: String,
     pub outputs: String,
@@ -59,6 +63,7 @@ pub struct MessageInfo {
 pub struct PackageInfo {
     pub id: String,
     pub name: String,
+    pub data: String,
     pub size: u32,
     pub create_time: i64,
     pub update_time: i64,

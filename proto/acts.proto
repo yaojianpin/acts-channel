@@ -1,89 +1,32 @@
 syntax = "proto3";
-
 package acts.grpc;
 
-enum NullValue {
-  NULL_VALUE = 0;
-}
-
-message ListValue {
-  repeated ProtoJsonValue values = 1;
-}
-
-message Struct {
-  map<string, ProtoJsonValue> fields = 1;
-}
-
-message ProtoJsonValue {
-  oneof kind {
-    NullValue null_value = 1;
-    double f64_value = 2;
-    int64 i64_value = 3;
-    uint64 u64_value = 4;
-    string string_value = 5;
-    bool bool_value = 6;
-    Struct struct_value = 7;
-    ListValue list_value = 8;
-  }
-}
-
+// subscript message options
 message MessageOptions {
-
   string client_id = 1;
-
   // message type
   string type = 2;
-
   // message event
   string state = 3;
-
   // model tag
   string tag = 4;
-
   // message key
   string key = 5;
 }
-message WorkflowOptions {}
 
-message ActionOptions {
+// grpc message with server or client
+message Message {
   string name = 1;
-  ProtoJsonValue options = 2;
+  string seq = 2;
+  optional string ack = 3;
+  optional bytes data = 4;
 }
 
-message WorkflowState {
-  string pid = 1;
-  string mid = 2;
-  string event = 3;
-  string state = 4;
-  int64 start_time = 5;
-  int64 end_time = 6;
-  ProtoJsonValue outputs = 7;
-}
-
-message WorkflowModel {
-  string id = 1;
-  string tag = 2;
-  string name = 3;
-}
-message WorkflowMessage {
-  string id = 1;
-  string name = 2;
-  string state = 3;
-  string type = 4;
-  string source = 5;
-  WorkflowModel model = 6;
-  string pid = 9;
-  string tid = 10;
-  string key = 11;
-  string tag = 12;
-
-  ProtoJsonValue inputs = 13;
-  ProtoJsonValue outputs = 14;
-  int64 start_time = 15;
-  int64 end_time = 16;
-}
-
+// acts service
 service ActsService {
-  rpc OnMessage(MessageOptions) returns (stream WorkflowMessage) {}
-  rpc action(ActionOptions) returns (ProtoJsonValue) {}
+  rpc Send(Message) returns (Message) {}
+  // rpc OnFlow(Message) returns (stream Message) {}
+  // rpc OnStep(Message) returns (stream Message) {}
+  // rpc OnAct(Message) returns (stream Message) {}
+  rpc OnMessage(MessageOptions) returns (stream Message) {}
 }

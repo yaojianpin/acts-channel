@@ -1,47 +1,4 @@
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListValue {
-    #[prost(message, repeated, tag = "1")]
-    pub values: ::prost::alloc::vec::Vec<ProtoJsonValue>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Struct {
-    #[prost(map = "string, message", tag = "1")]
-    pub fields: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ProtoJsonValue,
-    >,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ProtoJsonValue {
-    #[prost(oneof = "proto_json_value::Kind", tags = "1, 2, 3, 4, 5, 6, 7, 8")]
-    pub kind: ::core::option::Option<proto_json_value::Kind>,
-}
-/// Nested message and enum types in `ProtoJsonValue`.
-pub mod proto_json_value {
-    #[allow(clippy::derive_partial_eq_without_eq)]
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Kind {
-        #[prost(enumeration = "super::NullValue", tag = "1")]
-        NullValue(i32),
-        #[prost(double, tag = "2")]
-        F64Value(f64),
-        #[prost(int64, tag = "3")]
-        I64Value(i64),
-        #[prost(uint64, tag = "4")]
-        U64Value(u64),
-        #[prost(string, tag = "5")]
-        StringValue(::prost::alloc::string::String),
-        #[prost(bool, tag = "6")]
-        BoolValue(bool),
-        #[prost(message, tag = "7")]
-        StructValue(super::Struct),
-        #[prost(message, tag = "8")]
-        ListValue(super::ListValue),
-    }
-}
+/// subscript message options
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MessageOptions {
@@ -60,105 +17,25 @@ pub struct MessageOptions {
     #[prost(string, tag = "5")]
     pub key: ::prost::alloc::string::String,
 }
+/// grpc message with server or client
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorkflowOptions {}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ActionOptions {
+pub struct Message {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "2")]
-    pub options: ::core::option::Option<ProtoJsonValue>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorkflowState {
-    #[prost(string, tag = "1")]
-    pub pid: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
-    pub mid: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub event: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub state: ::prost::alloc::string::String,
-    #[prost(int64, tag = "5")]
-    pub start_time: i64,
-    #[prost(int64, tag = "6")]
-    pub end_time: i64,
-    #[prost(message, optional, tag = "7")]
-    pub outputs: ::core::option::Option<ProtoJsonValue>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorkflowModel {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub tag: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub name: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct WorkflowMessage {
-    #[prost(string, tag = "1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub state: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub r#type: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub source: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "6")]
-    pub model: ::core::option::Option<WorkflowModel>,
-    #[prost(string, tag = "9")]
-    pub pid: ::prost::alloc::string::String,
-    #[prost(string, tag = "10")]
-    pub tid: ::prost::alloc::string::String,
-    #[prost(string, tag = "11")]
-    pub key: ::prost::alloc::string::String,
-    #[prost(string, tag = "12")]
-    pub tag: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "13")]
-    pub inputs: ::core::option::Option<ProtoJsonValue>,
-    #[prost(message, optional, tag = "14")]
-    pub outputs: ::core::option::Option<ProtoJsonValue>,
-    #[prost(int64, tag = "15")]
-    pub start_time: i64,
-    #[prost(int64, tag = "16")]
-    pub end_time: i64,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum NullValue {
-    NullValue = 0,
-}
-impl NullValue {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            NullValue::NullValue => "NULL_VALUE",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "NULL_VALUE" => Some(Self::NullValue),
-            _ => None,
-        }
-    }
+    pub seq: ::prost::alloc::string::String,
+    #[prost(string, optional, tag = "3")]
+    pub ack: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(bytes = "vec", optional, tag = "4")]
+    pub data: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
 }
 /// Generated client implementations.
 pub mod acts_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    /// acts service
     #[derive(Debug, Clone)]
     pub struct ActsServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -223,11 +100,33 @@ pub mod acts_service_client {
             self.inner = self.inner.accept_compressed(encoding);
             self
         }
+        pub async fn send(
+            &mut self,
+            request: impl tonic::IntoRequest<super::Message>,
+        ) -> Result<tonic::Response<super::Message>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/acts.grpc.ActsService/Send",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// rpc OnFlow(Message) returns (stream Message) {}
+        /// rpc OnStep(Message) returns (stream Message) {}
+        /// rpc OnAct(Message) returns (stream Message) {}
         pub async fn on_message(
             &mut self,
             request: impl tonic::IntoRequest<super::MessageOptions>,
         ) -> Result<
-            tonic::Response<tonic::codec::Streaming<super::WorkflowMessage>>,
+            tonic::Response<tonic::codec::Streaming<super::Message>>,
             tonic::Status,
         > {
             self.inner
@@ -245,25 +144,6 @@ pub mod acts_service_client {
             );
             self.inner.server_streaming(request.into_request(), path, codec).await
         }
-        pub async fn action(
-            &mut self,
-            request: impl tonic::IntoRequest<super::ActionOptions>,
-        ) -> Result<tonic::Response<super::ProtoJsonValue>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/acts.grpc.ActsService/action",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
     }
 }
 /// Generated server implementations.
@@ -273,21 +153,25 @@ pub mod acts_service_server {
     /// Generated trait containing gRPC methods that should be implemented for use with ActsServiceServer.
     #[async_trait]
     pub trait ActsService: Send + Sync + 'static {
+        async fn send(
+            &self,
+            request: tonic::Request<super::Message>,
+        ) -> Result<tonic::Response<super::Message>, tonic::Status>;
         /// Server streaming response type for the OnMessage method.
         type OnMessageStream: futures_core::Stream<
-                Item = Result<super::WorkflowMessage, tonic::Status>,
+                Item = Result<super::Message, tonic::Status>,
             >
             + Send
             + 'static;
+        /// rpc OnFlow(Message) returns (stream Message) {}
+        /// rpc OnStep(Message) returns (stream Message) {}
+        /// rpc OnAct(Message) returns (stream Message) {}
         async fn on_message(
             &self,
             request: tonic::Request<super::MessageOptions>,
         ) -> Result<tonic::Response<Self::OnMessageStream>, tonic::Status>;
-        async fn action(
-            &self,
-            request: tonic::Request<super::ActionOptions>,
-        ) -> Result<tonic::Response<super::ProtoJsonValue>, tonic::Status>;
     }
+    /// acts service
     #[derive(Debug)]
     pub struct ActsServiceServer<T: ActsService> {
         inner: _Inner<T>,
@@ -347,6 +231,42 @@ pub mod acts_service_server {
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             let inner = self.inner.clone();
             match req.uri().path() {
+                "/acts.grpc.ActsService/Send" => {
+                    #[allow(non_camel_case_types)]
+                    struct SendSvc<T: ActsService>(pub Arc<T>);
+                    impl<T: ActsService> tonic::server::UnaryService<super::Message>
+                    for SendSvc<T> {
+                        type Response = super::Message;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::Message>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move { (*inner).send(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = SendSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 "/acts.grpc.ActsService/OnMessage" => {
                     #[allow(non_camel_case_types)]
                     struct OnMessageSvc<T: ActsService>(pub Arc<T>);
@@ -354,7 +274,7 @@ pub mod acts_service_server {
                         T: ActsService,
                     > tonic::server::ServerStreamingService<super::MessageOptions>
                     for OnMessageSvc<T> {
-                        type Response = super::WorkflowMessage;
+                        type Response = super::Message;
                         type ResponseStream = T::OnMessageStream;
                         type Future = BoxFuture<
                             tonic::Response<Self::ResponseStream>,
@@ -382,44 +302,6 @@ pub mod acts_service_server {
                                 send_compression_encodings,
                             );
                         let res = grpc.server_streaming(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/acts.grpc.ActsService/action" => {
-                    #[allow(non_camel_case_types)]
-                    struct actionSvc<T: ActsService>(pub Arc<T>);
-                    impl<
-                        T: ActsService,
-                    > tonic::server::UnaryService<super::ActionOptions>
-                    for actionSvc<T> {
-                        type Response = super::ProtoJsonValue;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::ActionOptions>,
-                        ) -> Self::Future {
-                            let inner = self.0.clone();
-                            let fut = async move { (*inner).action(request).await };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let inner = inner.0;
-                        let method = actionSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
-                        let res = grpc.unary(method, req).await;
                         Ok(res)
                     };
                     Box::pin(fut)
