@@ -49,7 +49,7 @@ client
 
 ## Action
 
-Executes action to interact with acts-server, such as `publish`, `start`, `push`, `remove`, `submit`, `complete`, `back`, `cancel`, `skip`, `error`, etc. For more information, please see [`acts-server`](https://github.com/yaojianpin/acts-server)
+Executes action to interact with acts-server, such as `deploy`, `start`, `ack`, `send`, etc. For more information, please see [`acts-server`](https://github.com/yaojianpin/acts-server)
 
 ### Publish
 
@@ -61,7 +61,7 @@ let yml = r"
         - name: step 1
     ";
 let resp = client
-    .publish(yml, Some("custom_model_id")).await?;
+    .deploy(yml, Some("custom_model_id")).await?;
 assert_eq!(resp.data.unwrap(), true);
 ```
 
@@ -75,66 +75,29 @@ client
 
 ```
 
-### Complete
+### do act
 
 ```rust,ignore
-let mut vars = Vars::new();
-vars.set("var1", "value1");
-client
-    .complete("pid", "tid", vars).await?;
+    // set some other vars
+    let vars = Vars::new();
+
+    // combine with pid and tid
+    let options = Vars::new().with("pid", pid).with("tid", tid).extend(&vars);
+
+    // name should be one of complete, submit, back, cancel, error, abort, push and remove
+    let name = "complete";
+    client
+        .send::<()>(name, options)
+        .await
+        .map_err(|err| err.message().to_string())?;
 ```
 
-### Back
+### Ack a message
 
 ```rust,ignore
-let mut vars = Vars::new();
-vars.set("to", "step1");
-client
-    .back("pid", "tid", vars).await?;
-```
-
-### Cancel
-
-```rust,ignore
-let mut vars = Vars::new();
-vars.set("var1", json!("value1"));
-client
-    .cancel("pid", "tid", vars).await?;
-
-```
-
-### Skip
-
-```rust,ignore
-let mut vars = Vars::new();
-vars.set("var1", "value1");
-client
-    .skip("pid", "tid", vars).await?;
-```
-
-### Error
-
-```rust,ignore
-let mut vars = Vars::new();
-vars.set("error", Vars::new().with("ecode", "err1"));
-let resp = client
-    .error("pid", "tid", vars).await?;
-```
-
-### Push
-
-```rust,ignore
-let mut vars = Vars::new();
-vars.set("var1", "value1");
-let resp = client
-    .push("pid", "tid", vars).await?;
-```
-
-### Remove
-
-```rust,ignore
-let mut vars = Vars::new();
-vars.set("var1", "value1");
-let resp = client
-    .remove("pid", "tid", vars).await?;
+    let resp = client
+        // id is message id
+        .ack(id)
+        .await
+        .map_err(|err| err.message().to_string())?;
 ```
