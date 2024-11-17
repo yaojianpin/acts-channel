@@ -1,6 +1,5 @@
 [package]
 authors = ["yao <39178011@qq.com>"]
-categories = ["workflow"]
 description = "acts client channel for acts-server"
 documentation = "https://github.com/yaojianpin/acts-channel"
 edition = "2021"
