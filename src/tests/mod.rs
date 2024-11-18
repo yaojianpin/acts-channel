@@ -9,11 +9,17 @@ mod act;
 mod server;
 mod workflow;
 
+#[cfg(feature = "docker_test")]
+pub const SERVER_ADDR: &str = "172.17.0.1";
+
+#[cfg(not(feature = "docker_test"))]
+pub const SERVER_ADDR: &str = "127.0.0.1";
+
 async fn start_server(port: u16, rx: Receiver<()>) {
     let server = server::GrpcServer::new();
     server.init().await;
     let grpc = ActsServiceServer::new(server);
-    let addr = format!("127.0.0.1:{port}").parse().unwrap();
+    let addr = format!("{SERVER_ADDR}:{port}").parse().unwrap();
     tokio::spawn(async move {
         Server::builder()
             .add_service(grpc)

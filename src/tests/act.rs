@@ -1,5 +1,5 @@
 use crate::{
-    tests::{pick_port, start_server},
+    tests::{pick_port, start_server, SERVER_ADDR},
     ActsChannel, ActsOptions, Vars,
 };
 use acts::Signal;
@@ -9,7 +9,7 @@ use tokio::sync::oneshot;
 async fn act_submit() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -58,7 +58,7 @@ async fn act_submit() {
 async fn act_complete() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -107,7 +107,7 @@ async fn act_complete() {
 async fn act_push() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -159,7 +159,7 @@ async fn act_push() {
 async fn act_remove() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -208,7 +208,7 @@ async fn act_remove() {
 async fn act_error() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -260,7 +260,7 @@ async fn act_error() {
 async fn act_back() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -326,7 +326,7 @@ async fn act_back() {
 async fn act_cancel() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -389,7 +389,7 @@ async fn act_cancel() {
 async fn act_skip() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();

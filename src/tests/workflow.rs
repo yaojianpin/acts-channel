@@ -1,6 +1,7 @@
 use super::{pick_port, start_server};
 use crate::{
     model::{ModelInfo, Package},
+    tests::SERVER_ADDR,
     ActsChannel, ActsOptions, Vars,
 };
 use acts::Signal;
@@ -10,7 +11,7 @@ use tokio::sync::oneshot;
 async fn workflow_deploy() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -30,7 +31,7 @@ async fn workflow_deploy() {
 async fn workflow_publish() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -56,7 +57,7 @@ async fn workflow_publish() {
 async fn workflow_start() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -73,7 +74,7 @@ async fn workflow_start() {
 async fn workflow_subscribe() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
@@ -112,7 +113,7 @@ async fn workflow_subscribe() {
 async fn workflow_models() {
     let (tx, rx) = oneshot::channel();
     let port = pick_port();
-    let url = format!("http://127.0.0.1:{port}");
+    let url = format!("http://{}:{port}", SERVER_ADDR);
     start_server(port, rx).await;
 
     let mut client = ActsChannel::connect(&url).await.unwrap();
