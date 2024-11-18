@@ -13,7 +13,7 @@ async fn start_server(port: u16, rx: Receiver<()>) {
     let server = server::GrpcServer::new();
     server.init().await;
     let grpc = ActsServiceServer::new(server);
-    let addr = format!("0.0.0.0:{port}").parse().unwrap();
+    let addr = format!("127.0.0.1:{port}").parse().unwrap();
     tokio::spawn(async move {
         Server::builder()
             .add_service(grpc)
