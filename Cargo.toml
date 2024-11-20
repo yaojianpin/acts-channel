@@ -9,7 +9,7 @@ license = "MIT"
 name = "acts-channel"
 readme = "Readme.md"
 repository = "https://github.com/yaojianpin/acts-channel.git"
-version = "0.6.2"
+version = "0.6.3"
 
 [dependencies]
 chrono = "0.4.38"
