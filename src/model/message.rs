@@ -36,11 +36,17 @@ pub struct Message {
     /// task id
     pub tid: String,
 
+    /// node id
+    pub nid: String,
+
+    /// model id
+    pub mid: String,
+
     /// node name or action name
     pub name: String,
 
     /// task action state
-    pub state: MessageState,
+    pub state: String,
 
     /// message type
     /// msg | req
@@ -79,7 +85,7 @@ pub struct Message {
 
 impl Message {
     pub fn state(&self) -> MessageState {
-        let state = self.state.clone().into();
+        let state = self.state.as_str().into();
         state
     }
 
@@ -88,7 +94,7 @@ impl Message {
     }
 
     pub fn is_state(&self, state: &str) -> bool {
-        self.state == state.into()
+        self.state == state
     }
 
     pub fn is_type(&self, t: &str) -> bool {
@@ -128,7 +134,8 @@ impl Message {
 
     /// workflow cost in million seconds
     pub fn cost(&self) -> i64 {
-        if self.state.is_completed() {
+        let state: MessageState = self.state.as_str().into();
+        if state.is_completed() {
             return self.end_time - self.start_time;
         }
 
@@ -159,27 +166,8 @@ impl fmt::Display for MessageState {
     }
 }
 
-// impl From<TaskState> for MessageState {
-//     fn from(state: TaskState) -> Self {
-//         match state {
-//             TaskState::None => MessageState::None,
-//             TaskState::Ready | TaskState::Pending | TaskState::Running | TaskState::Interrupt => {
-//                 MessageState::Created
-//             }
-//             TaskState::Completed => MessageState::Completed,
-//             TaskState::Submitted => MessageState::Submitted,
-//             TaskState::Backed => MessageState::Backed,
-//             TaskState::Cancelled => MessageState::Cancelled,
-//             TaskState::Error => MessageState::Error,
-//             TaskState::Aborted => MessageState::Aborted,
-//             TaskState::Skipped => MessageState::Skipped,
-//             TaskState::Removed => MessageState::Removed,
-//         }
-//     }
-// }
-
-impl From<MessageState> for String {
-    fn from(state: MessageState) -> Self {
+impl From<&MessageState> for String {
+    fn from(state: &MessageState) -> Self {
         message_state_to_str(state)
     }
 }
@@ -196,13 +184,7 @@ impl From<String> for MessageState {
     }
 }
 
-impl From<&MessageState> for String {
-    fn from(state: &MessageState) -> Self {
-        message_state_to_str(state.clone())
-    }
-}
-
-fn message_state_to_str(state: MessageState) -> String {
+fn message_state_to_str(state: &MessageState) -> String {
     match state {
         MessageState::None => "none".to_string(),
         MessageState::Aborted => "aborted".to_string(),

@@ -1,5 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct PageData<T> {
+    pub count: usize,
+    pub page_size: usize,
+    pub page_num: usize,
+    pub page_count: usize,
+    pub rows: Vec<T>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ProcInfo {
     pub id: String,
@@ -35,7 +44,8 @@ pub struct ModelInfo {
     pub name: String,
     pub ver: u32,
     pub size: u32,
-    pub time: i64,
+    pub create_time: i64,
+    pub update_time: i64,
     pub data: String,
 }
 
