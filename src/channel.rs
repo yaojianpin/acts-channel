@@ -17,6 +17,7 @@ pub struct ActsOptions {
     pub state: Option<String>,
     pub tag: Option<String>,
     pub key: Option<String>,
+    pub uses: Option<String>,
     /// auto ack message when receiving by client
     pub ack: Option<bool>,
 }
@@ -169,6 +170,13 @@ impl ActsChannel {
 
             key: options
                 .key
+                .as_ref()
+                .map(|i| i.as_str())
+                .unwrap_or("*")
+                .to_string(),
+
+            uses: options
+                .uses
                 .as_ref()
                 .map(|i| i.as_str())
                 .unwrap_or("*")

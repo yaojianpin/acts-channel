@@ -12,6 +12,8 @@ message MessageOptions {
   string tag = 4;
   // message key
   string key = 5;
+  // message uses
+  string uses = 6;
 }
 
 // grpc message with server or client

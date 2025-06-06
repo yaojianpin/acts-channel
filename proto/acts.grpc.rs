@@ -16,6 +16,9 @@ pub struct MessageOptions {
     /// message key
     #[prost(string, tag = "5")]
     pub key: ::prost::alloc::string::String,
+    /// message uses
+    #[prost(string, tag = "6")]
+    pub uses: ::prost::alloc::string::String,
 }
 /// grpc message with server or client
 #[allow(clippy::derive_partial_eq_without_eq)]

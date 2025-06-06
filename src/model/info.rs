@@ -10,6 +10,24 @@ pub struct PageData<T> {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct PackageInfo {
+    pub id: String,
+
+    pub desc: String,
+    pub icon: String,
+    pub doc: String,
+    pub version: String,
+    pub schema: String,
+    pub run_as: String,
+    pub resources: String,
+    pub catalog: String,
+
+    pub create_time: i64,
+    pub update_time: i64,
+    pub timestamp: i64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ProcInfo {
     pub id: String,
     pub name: String,
@@ -26,10 +44,10 @@ pub struct TaskInfo {
     pub id: String,
     pub prev: Option<String>,
     pub name: String,
-    pub pid: String,
-    pub nid: String,
     pub tag: String,
     pub key: String,
+    pub pid: String,
+    pub nid: String,
     pub r#type: String,
     pub state: String,
     pub data: String,
@@ -42,8 +60,8 @@ pub struct TaskInfo {
 pub struct ModelInfo {
     pub id: String,
     pub name: String,
-    pub ver: u32,
-    pub size: u32,
+    pub ver: i32,
+    pub size: i32,
     pub create_time: i64,
     pub update_time: i64,
     pub data: String,
@@ -67,45 +85,55 @@ pub struct MessageInfo {
     pub retry_times: i32,
     pub status: String,
     pub timestamp: i64,
+    pub uses: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct PackageInfo {
+pub struct EventInfo {
     pub id: String,
     pub name: String,
-    pub data: String,
-    pub size: u32,
+    pub mid: String,
+    pub ver: i32,
+
+    pub uses: String,
+    pub params: String,
+
     pub create_time: i64,
-    pub update_time: i64,
     pub timestamp: i64,
 }
 
-impl From<&serde_json::Value> for ModelInfo {
-    fn from(value: &serde_json::Value) -> Self {
-        serde_json::from_value(value.clone()).unwrap()
+impl From<PackageInfo> for serde_json::Value {
+    fn from(val: PackageInfo) -> Self {
+        serde_json::to_value(val).unwrap()
     }
 }
 
-impl From<&serde_json::Value> for ProcInfo {
-    fn from(value: &serde_json::Value) -> Self {
-        serde_json::from_value(value.clone()).unwrap()
+impl From<TaskInfo> for serde_json::Value {
+    fn from(val: TaskInfo) -> Self {
+        serde_json::to_value(val).unwrap()
     }
 }
 
-impl From<&serde_json::Value> for TaskInfo {
-    fn from(value: &serde_json::Value) -> Self {
-        serde_json::from_value(value.clone()).unwrap()
+impl From<ProcInfo> for serde_json::Value {
+    fn from(val: ProcInfo) -> Self {
+        serde_json::to_value(val).unwrap()
     }
 }
 
-impl From<&serde_json::Value> for MessageInfo {
-    fn from(value: &serde_json::Value) -> Self {
-        serde_json::from_value(value.clone()).unwrap()
+impl From<ModelInfo> for serde_json::Value {
+    fn from(val: ModelInfo) -> Self {
+        serde_json::to_value(val).unwrap()
     }
 }
 
-impl From<&serde_json::Value> for PackageInfo {
-    fn from(value: &serde_json::Value) -> Self {
-        serde_json::from_value(value.clone()).unwrap()
+impl From<MessageInfo> for serde_json::Value {
+    fn from(val: MessageInfo) -> Self {
+        serde_json::to_value(val).unwrap()
+    }
+}
+
+impl From<EventInfo> for serde_json::Value {
+    fn from(val: EventInfo) -> Self {
+        serde_json::to_value(val).unwrap()
     }
 }

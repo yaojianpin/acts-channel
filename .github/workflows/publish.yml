@@ -1,0 +1,20 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - '*'
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Run Publish
+        run: |
+          cargo publish --token=${{secrets.CARGO_TOKEN}} --allow-dirty
