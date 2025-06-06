@@ -18,6 +18,7 @@ impl<T> ActionResult<T> {
         }
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn end(mut self) -> Result<Self, Status> {
         self.end_time = utils::time_millis();
         Ok(self)

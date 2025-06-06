@@ -71,8 +71,14 @@ impl ActsChannel {
     pub async fn publish(&mut self, package: &Package) -> Result<ActionResult<bool>, Status> {
         let options = Vars::new()
             .with("id", package.id.clone())
-            .with("name", package.name.clone())
-            .with("body", package.body.clone());
+            .with("desc", package.desc.clone())
+            .with("icon", package.icon.clone())
+            .with("doc", package.doc.clone())
+            .with("version", package.version.clone())
+            .with("schema", package.schema.clone())
+            .with("run_as", package.run_as.clone())
+            .with("resources", package.resources.clone())
+            .with("catalog", package.catalog.clone());
 
         self.send("pack:publish", options).await
     }
@@ -149,38 +155,11 @@ impl ActsChannel {
     ) {
         let request = tonic::Request::new(MessageOptions {
             client_id: client_id.to_string(),
-            r#type: options
-                .r#type
-                .as_ref()
-                .map(|i| i.as_str())
-                .unwrap_or("*")
-                .to_string(),
-            state: options
-                .state
-                .as_ref()
-                .map(|i| i.as_str())
-                .unwrap_or("*")
-                .to_string(),
-            tag: options
-                .tag
-                .as_ref()
-                .map(|i| i.as_str())
-                .unwrap_or("*")
-                .to_string(),
-
-            key: options
-                .key
-                .as_ref()
-                .map(|i| i.as_str())
-                .unwrap_or("*")
-                .to_string(),
-
-            uses: options
-                .uses
-                .as_ref()
-                .map(|i| i.as_str())
-                .unwrap_or("*")
-                .to_string(),
+            r#type: options.r#type.as_deref().unwrap_or("*").to_string(),
+            state: options.state.as_deref().unwrap_or("*").to_string(),
+            tag: options.tag.as_deref().unwrap_or("*").to_string(),
+            key: options.key.as_deref().unwrap_or("*").to_string(),
+            uses: options.uses.as_deref().unwrap_or("*").to_string(),
         });
         let mut stream = client.on_message(request).await.unwrap().into_inner();
         let chan = self.clone();
@@ -188,8 +167,8 @@ impl ActsChannel {
         tokio::spawn(async move {
             let mut chan = chan.clone();
             while let Some(item) = stream.next().await {
-                if !item.is_err() {
-                    let m: Message = item.unwrap().into();
+                if item.is_ok() {
+                    let m: Message = item.unwrap();
                     let message = serde_json::from_slice(m.data()).unwrap();
                     let seq = &m.seq;
 
