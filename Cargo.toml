@@ -7,7 +7,6 @@ homepage = "https://github.com/yaojianpin/acts-channel"
 keywords = ["workflow-channel"]
 license = "MIT"
 name = "acts-channel"
-readme = "Readme.md"
 repository = "https://github.com/yaojianpin/acts-channel.git"
 version = "0.8.0"
 
